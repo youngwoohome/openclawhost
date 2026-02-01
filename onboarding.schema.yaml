@@ -1,0 +1,445 @@
+version: 1
+metadata:
+  product: Managed Moltworker
+  source_repo: https://github.com/cloudflare/moltworker
+  notes:
+    - This schema drives the onboarding wizard UI
+    - Run 'pnpm sync-schema' to sync with moltworker codebase
+    - Never store secrets - only validate them
+
+links:
+  cloudflare_signup:
+    label: Create Cloudflare Account
+    url: https://dash.cloudflare.com/sign-up
+  deploy_button:
+    label: Deploy to Cloudflare Workers
+    url: https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/moltworker
+  cloudflare_workers:
+    label: Cloudflare Workers Dashboard
+    url: https://dash.cloudflare.com/?to=/:account/workers-and-pages
+  cloudflare_access:
+    label: Cloudflare Access Docs
+    url: https://developers.cloudflare.com/cloudflare-one/applications/configure-apps/self-hosted-apps/
+  cloudflare_zero_trust:
+    label: Open Zero Trust Dashboard
+    url: https://one.dash.cloudflare.com/
+  anthropic_console:
+    label: Anthropic Console
+    url: https://console.anthropic.com/settings/keys
+  telegram_botfather:
+    label: Telegram BotFather
+    url: https://t.me/BotFather
+  discord_developer:
+    label: Discord Developer Portal
+    url: https://discord.com/developers/applications
+  slack_apps:
+    label: Slack App Directory
+    url: https://api.slack.com/apps
+  cloudflare_r2:
+    label: Cloudflare R2 Storage Docs
+    url: https://developers.cloudflare.com/r2/
+  cloudflare_r2_tokens:
+    label: Manage R2 API Tokens
+    url: https://dash.cloudflare.com/?to=/:account/r2/api-tokens
+
+providers:
+  llm:
+    - id: anthropic
+      label: Anthropic (Direct)
+      env: ANTHROPIC_API_KEY
+    - id: ai_gateway
+      label: Cloudflare AI Gateway
+      env: AI_GATEWAY_API_KEY
+  channels:
+    - id: telegram
+      label: Telegram
+      env: TELEGRAM_BOT_TOKEN
+    - id: discord
+      label: Discord
+      env: DISCORD_BOT_TOKEN
+    - id: slack
+      label: Slack
+      env: SLACK_BOT_TOKEN
+
+validators:
+  - id: required_nonempty
+    type: builtin
+    rule: value.trim().length > 0
+  - id: valid_url
+    type: builtin
+    rule: URL.canParse(value)
+  - id: validate_moltworker_url
+    type: http
+    request:
+      method: POST
+      url: /api/validate_url
+      body:
+        base_url: "{{base_url}}"
+  - id: validate_slack_bot_token
+    type: http
+    request:
+      method: POST
+      url: /api/validate_slack_bot_token
+      body:
+        token: "{{slack_bot_token}}"
+  - id: validate_telegram_bot_token
+    type: http
+    request:
+      method: POST
+      url: /api/validate_telegram_bot_token
+      body:
+        token: "{{telegram_bot_token}}"
+  - id: validate_discord_bot_token
+    type: http
+    request:
+      method: POST
+      url: /api/validate_discord_bot_token
+      body:
+        token: "{{discord_bot_token}}"
+  - id: check_cloudflare_access
+    type: http
+    request:
+      method: POST
+      url: /api/check_access
+      body:
+        base_url: "{{base_url}}"
+
+fields:
+  - id: base_url
+    label: Your Deployed Worker URL
+    type: url
+    required: true
+    help: "After deployment, paste your worker URL here (e.g., https://moltbot-sandbox.your-name.workers.dev)"
+    validators:
+      - valid_url
+      - validate_moltworker_url
+
+  - id: security_mode
+    label: Security Mode
+    type: select
+    required: true
+    help: "Choose how to protect your admin interface"
+    options:
+      - id: dev_mode
+        label: "Skip for now (Personal/Development use)"
+      - id: cloudflare_access
+        label: "Cloudflare Access (Recommended for production)"
+
+  - id: cf_access_team_domain
+    label: Cloudflare Access Team Domain
+    type: url
+    required: true
+    help: "Find this in Zero Trust Dashboard → Settings → Custom Pages. Format: https://your-team.cloudflareaccess.com"
+    validators:
+      - valid_url
+    depends_on:
+      field: security_mode
+      equals: cloudflare_access
+
+  - id: cf_access_aud
+    label: Application Audience (AUD) Tag
+    type: secret
+    required: true
+    help: "Find this in Zero Trust Dashboard → Access → Applications → Your App → Overview → Application Audience (AUD) Tag"
+    validators:
+      - required_nonempty
+    depends_on:
+      field: security_mode
+      equals: cloudflare_access
+
+  - id: moltbot_gateway_token
+    label: Gateway Token
+    type: secret
+    required: true
+    help: A secret token to protect gateway access. Generate a strong random value.
+    validators:
+      - required_nonempty
+    generate:
+      type: random
+      length: 32
+
+  - id: r2_access_key_id
+    label: R2 Access Key ID
+    type: secret
+    required: false
+    help: "R2 API token Access Key ID for persistent storage. Get this from R2 → Manage R2 API Tokens. Optional - without this, data will be lost on container restart."
+    validators:
+      - required_nonempty
+
+  - id: r2_secret_access_key
+    label: R2 Secret Access Key
+    type: secret
+    required: false
+    help: "R2 API token Secret Access Key for persistent storage. Keep this secret safe!"
+    validators:
+      - required_nonempty
+
+  - id: cf_account_id
+    label: Cloudflare Account ID
+    type: secret
+    required: false
+    help: "Your Cloudflare Account ID. Find this in the Cloudflare Dashboard → click the three dots menu next to your account name → Copy Account ID"
+    validators:
+      - required_nonempty
+
+  - id: llm_provider
+    label: LLM Provider
+    type: select
+    required: true
+    help: Choose how to connect to the AI model
+    options_from: providers.llm
+
+  - id: anthropic_auth_method
+    label: Authentication Method
+    type: select
+    required: true
+    help: "Choose how to authenticate with Anthropic"
+    options:
+      - id: setup_token
+        label: "Setup Token (Claude Pro/Max subscribers - FREE)"
+      - id: api_key
+        label: "API Key (Pay per use)"
+    depends_on:
+      field: llm_provider
+      equals: anthropic
+
+  - id: anthropic_setup_token
+    label: Anthropic Setup Token
+    type: secret
+    required: true
+    help: "Get your token by running: claude setup-token"
+    validators:
+      - required_nonempty
+    depends_on:
+      field: anthropic_auth_method
+      equals: setup_token
+
+  - id: anthropic_api_key
+    label: Anthropic API Key
+    type: secret
+    required: true
+    help: Your Anthropic API key from console.anthropic.com
+    validators:
+      - required_nonempty
+    depends_on:
+      field: anthropic_auth_method
+      equals: api_key
+
+  - id: ai_gateway_api_key
+    label: AI Gateway API Key
+    type: secret
+    required: true
+    help: Your Cloudflare AI Gateway API key
+    validators:
+      - required_nonempty
+    depends_on:
+      field: llm_provider
+      equals: ai_gateway
+
+  - id: ai_gateway_base_url
+    label: AI Gateway Base URL
+    type: url
+    required: true
+    help: Your Cloudflare AI Gateway endpoint URL
+    validators:
+      - valid_url
+    depends_on:
+      field: llm_provider
+      equals: ai_gateway
+
+  - id: enabled_channels
+    label: Enabled Channels
+    type: multiselect
+    required: false
+    help: Select which messaging channels to enable
+    options_from: providers.channels
+
+  - id: telegram_bot_token
+    label: Telegram Bot Token
+    type: secret
+    required: false
+    help: Bot token from @BotFather
+    validators:
+      - validate_telegram_bot_token
+    depends_on:
+      field: enabled_channels
+      includes: telegram
+
+  - id: discord_bot_token
+    label: Discord Bot Token
+    type: secret
+    required: false
+    help: Bot token from Discord Developer Portal
+    validators:
+      - validate_discord_bot_token
+    depends_on:
+      field: enabled_channels
+      includes: discord
+
+  - id: slack_bot_token
+    label: Slack Bot Token
+    type: secret
+    required: false
+    help: Bot token starting with xoxb-
+    validators:
+      - validate_slack_bot_token
+    depends_on:
+      field: enabled_channels
+      includes: slack
+
+  - id: slack_app_token
+    label: Slack App Token
+    type: secret
+    required: false
+    help: App token starting with xapp- (for Socket Mode)
+    validators:
+      - required_nonempty
+    depends_on:
+      field: enabled_channels
+      includes: slack
+
+steps:
+  - id: deploy
+    title: Deploy to Cloudflare
+    description: "First, let's deploy Moltworker to your Cloudflare account. You can enter placeholder values for ANTHROPIC_API_KEY and MOLTBOT_GATEWAY_TOKEN during deployment - we'll configure the real values in the next steps and sync them automatically."
+    deploy_button:
+      url: https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/moltworker
+      label: Deploy to Cloudflare Workers
+    checklist:
+      - Click the deploy button above
+      - Sign in with GitHub when prompted
+      - Choose whether to make your forked repo public or private
+      - Wait for the deployment to complete
+      - Copy your worker URL (e.g., moltbot-sandbox.your-name.workers.dev)
+    links:
+      - ref: cloudflare_signup
+    fields:
+      - base_url
+    actions:
+      - id: validate_moltworker_url
+        type: validate_url
+        input_field: base_url
+    completion:
+      type: validator_success
+      validator: validate_moltworker_url
+
+  - id: cloudflare_access
+    title: Security Setup
+    description: "Choose how to protect your Moltworker admin interface. You can set up Cloudflare Access for production use, or skip this for personal/development use."
+    fields:
+      - security_mode
+      - cf_access_team_domain
+      - cf_access_aud
+    links:
+      - ref: cloudflare_access
+      - ref: cloudflare_zero_trust
+    completion:
+      type: fields_present
+      required_fields:
+        - security_mode
+
+  - id: gateway_token
+    title: Gateway Token
+    description: Set up a secret token to protect your gateway. This token is required for all API requests to your Moltworker instance.
+    fields:
+      - moltbot_gateway_token
+    completion:
+      type: fields_present
+      required_fields:
+        - moltbot_gateway_token
+
+  - id: r2_storage
+    title: Persistent Storage (Optional)
+    description: "Configure R2 storage to persist your data across container restarts. Without R2, paired devices and conversations will be lost when the container restarts. This step is optional - you can skip it for testing."
+    fields:
+      - r2_access_key_id
+      - r2_secret_access_key
+      - cf_account_id
+    links:
+      - ref: cloudflare_r2
+      - ref: cloudflare_r2_tokens
+    checklist:
+      - "Go to R2 → Overview in the Cloudflare Dashboard"
+      - "Click 'Manage R2 API Tokens'"
+      - "Create a new token with 'Object Read & Write' permissions"
+      - "Select the 'moltbot-data' bucket (created automatically on first deploy)"
+      - "Copy the Access Key ID and Secret Access Key"
+      - "Find your Account ID: Dashboard → click three dots menu → Copy Account ID"
+    completion:
+      type: optional_any_of
+      any_of:
+        - r2_access_key_id
+      allow_none: true
+      none_warning: R2 storage not configured. Data will be lost on container restart.
+
+  - id: llm_provider
+    title: LLM Provider
+    description: "Choose how to connect to Claude. Claude Pro/Max subscribers can use their setup token for FREE - no API billing required!"
+    fields:
+      - llm_provider
+      - anthropic_auth_method
+      - anthropic_setup_token
+      - anthropic_api_key
+      - ai_gateway_api_key
+      - ai_gateway_base_url
+    links:
+      - ref: anthropic_console
+    completion:
+      type: fields_present
+      required_fields:
+        - llm_provider
+
+  - id: channels
+    title: Messaging Channels
+    description: Configure messaging channels to connect your AI assistant. You can enable multiple channels or skip this step to use only the web interface.
+    fields:
+      - enabled_channels
+      - telegram_bot_token
+      - discord_bot_token
+      - slack_bot_token
+      - slack_app_token
+    links:
+      - ref: telegram_botfather
+      - ref: discord_developer
+      - ref: slack_apps
+    completion:
+      type: optional_any_of
+      any_of:
+        - telegram_bot_token
+        - discord_bot_token
+        - slack_bot_token
+      allow_none: true
+      none_warning: No channels configured. You can still use the web interface.
+
+  - id: summary
+    title: Summary
+    description: Review your configuration and copy the environment variables to set in Cloudflare Workers.
+    summary:
+      show_fields:
+        - base_url
+        - security_mode
+        - cf_access_team_domain
+        - cf_access_aud
+        - moltbot_gateway_token
+        - r2_access_key_id
+        - r2_secret_access_key
+        - cf_account_id
+        - llm_provider
+        - anthropic_auth_method
+        - anthropic_setup_token
+        - anthropic_api_key
+        - ai_gateway_api_key
+        - ai_gateway_base_url
+        - enabled_channels
+        - telegram_bot_token
+        - discord_bot_token
+        - slack_bot_token
+        - slack_app_token
+    completion:
+      type: always
+
+  - id: device_pairing
+    title: Device Pairing
+    description: "Approve devices and channels that want to connect to your Moltworker instance. After deploying your secrets, message your Telegram/Discord/Slack bot to get a pairing code, then enter it here."
+    completion:
+      type: always

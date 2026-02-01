@@ -1,0 +1,15 @@
+{
+  "name": "openclawhost",
+  "private": true,
+  "scripts": {
+    "sync-schema": "tsx scripts/sync-schema.ts",
+    "wizard:dev": "pnpm --filter wizard dev",
+    "wizard:build": "pnpm --filter wizard build",
+    "moltworker:dev": "pnpm --filter moltworker dev",
+    "moltworker:build": "pnpm --filter moltworker build"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
