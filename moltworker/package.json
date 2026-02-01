@@ -37,5 +37,15 @@
     "wrangler": "^4.50.0"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "cloudflare": {
+    "bindings": {
+      "ANTHROPIC_API_KEY": {
+        "description": "Your [Anthropic API key](https://console.anthropic.com/)."
+      },
+      "MOLTBOT_GATEWAY_TOKEN": {
+        "description": "Token for gateway access. Generate with: openssl rand -hex 32"
+      }
+    }
+  }
 }
