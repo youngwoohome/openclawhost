@@ -1,7 +1,7 @@
 version: 1
 metadata:
   product: Managed Moltworker
-  source_repo: https://github.com/cloudflare/moltworker
+  source_repo: https://github.com/youngwoohome/openclawhost
   notes:
     - This schema drives the onboarding wizard UI
     - Run 'pnpm sync-schema' to sync with moltworker codebase
@@ -13,7 +13,7 @@ links:
     url: https://dash.cloudflare.com/sign-up
   deploy_button:
     label: Deploy to Cloudflare Workers
-    url: https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/moltworker
+    url: https://deploy.workers.cloudflare.com/?url=https://github.com/youngwoohome/openclawhost/tree/main/moltworker
   cloudflare_workers:
     label: Cloudflare Workers Dashboard
     url: https://dash.cloudflare.com/?to=/:account/workers-and-pages
@@ -303,7 +303,7 @@ steps:
     title: Deploy to Cloudflare
     description: "First, let's deploy Moltworker to your Cloudflare account. You can enter placeholder values for ANTHROPIC_API_KEY and MOLTBOT_GATEWAY_TOKEN during deployment - we'll configure the real values in the next steps and sync them automatically."
     deploy_button:
-      url: https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/moltworker
+      url: https://deploy.workers.cloudflare.com/?url=https://github.com/youngwoohome/openclawhost/tree/main/moltworker
       label: Deploy to Cloudflare Workers
     checklist:
       - Click the deploy button above
