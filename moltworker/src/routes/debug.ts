@@ -345,11 +345,8 @@ debug.get('/env', async (c) => {
     has_r2_access_key: !!c.env.R2_ACCESS_KEY_ID,
     has_r2_secret_key: !!c.env.R2_SECRET_ACCESS_KEY,
     has_cf_account_id: !!c.env.CF_ACCOUNT_ID,
-    dev_mode: c.env.DEV_MODE,
     debug_routes: c.env.DEBUG_ROUTES,
     bind_mode: c.env.CLAWDBOT_BIND_MODE,
-    cf_access_team_domain: c.env.CF_ACCESS_TEAM_DOMAIN,
-    has_cf_access_aud: !!c.env.CF_ACCESS_AUD,
   });
 });
 

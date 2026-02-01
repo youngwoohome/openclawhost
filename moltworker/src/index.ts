@@ -60,14 +60,6 @@ function validateRequiredEnv(env: MoltbotEnv): string[] {
     missing.push('MOLTBOT_GATEWAY_TOKEN');
   }
 
-  if (!env.CF_ACCESS_TEAM_DOMAIN) {
-    missing.push('CF_ACCESS_TEAM_DOMAIN');
-  }
-
-  if (!env.CF_ACCESS_AUD) {
-    missing.push('CF_ACCESS_AUD');
-  }
-
   // Check for AI Gateway or direct Anthropic configuration
   if (env.AI_GATEWAY_API_KEY) {
     // AI Gateway requires both API key and base URL
@@ -118,7 +110,6 @@ app.use('*', async (c, next) => {
   console.log(`[REQ] ${c.req.method} ${url.pathname}${url.search}`);
   console.log(`[REQ] Has ANTHROPIC_API_KEY: ${!!c.env.ANTHROPIC_API_KEY}`);
   console.log(`[REQ] Has ANTHROPIC_OAUTH_TOKEN: ${!!c.env.ANTHROPIC_OAUTH_TOKEN}`);
-  console.log(`[REQ] DEV_MODE: ${c.env.DEV_MODE}`);
   console.log(`[REQ] DEBUG_ROUTES: ${c.env.DEBUG_ROUTES}`);
   await next();
 });
@@ -160,11 +151,6 @@ app.use('*', async (c, next) => {
     return next();
   }
 
-  // Skip validation in dev mode
-  if (c.env.DEV_MODE === 'true') {
-    return next();
-  }
-  
   const missingVars = validateRequiredEnv(c.env);
   if (missingVars.length > 0) {
     console.error('[CONFIG] Missing required environment variables:', missingVars.join(', '));

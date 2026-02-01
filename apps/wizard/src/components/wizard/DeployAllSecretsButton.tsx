@@ -16,12 +16,10 @@ interface SecretMapping {
 }
 
 const SECRET_MAPPINGS: SecretMapping[] = [
-  // DEV_MODE - only if security_mode is 'dev_mode'
+  // Gateway Token - required for all API access
   {
-    fieldId: 'security_mode',
-    secretName: 'DEV_MODE',
-    condition: (s) => s.fields['security_mode']?.value === 'dev_mode',
-    getValue: () => 'true', // Special case: value is 'true', not the field value
+    fieldId: 'moltbot_gateway_token',
+    secretName: 'MOLTBOT_GATEWAY_TOKEN',
   },
   // Anthropic OAuth Token (for Claude Pro/Max subscribers)
   {

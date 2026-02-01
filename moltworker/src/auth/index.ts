@@ -1,2 +1,1 @@
-export { verifyAccessJWT } from './jwt';
-export { createAccessMiddleware, isDevMode, extractJWT } from './middleware';
+export { createAccessMiddleware, extractGatewayToken, validateGatewayToken } from './middleware';

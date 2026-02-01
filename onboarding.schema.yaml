@@ -114,39 +114,6 @@ fields:
       - valid_url
       - validate_moltworker_url
 
-  - id: security_mode
-    label: Security Mode
-    type: select
-    required: true
-    help: "Choose how to protect your admin interface"
-    options:
-      - id: dev_mode
-        label: "Skip for now (Personal/Development use)"
-      - id: cloudflare_access
-        label: "Cloudflare Access (Recommended for production)"
-
-  - id: cf_access_team_domain
-    label: Cloudflare Access Team Domain
-    type: url
-    required: true
-    help: "Find this in Zero Trust Dashboard → Settings → Custom Pages. Format: https://your-team.cloudflareaccess.com"
-    validators:
-      - valid_url
-    depends_on:
-      field: security_mode
-      equals: cloudflare_access
-
-  - id: cf_access_aud
-    label: Application Audience (AUD) Tag
-    type: secret
-    required: true
-    help: "Find this in Zero Trust Dashboard → Access → Applications → Your App → Overview → Application Audience (AUD) Tag"
-    validators:
-      - required_nonempty
-    depends_on:
-      field: security_mode
-      equals: cloudflare_access
-
   - id: moltbot_gateway_token
     label: Gateway Token
     type: secret
@@ -323,21 +290,6 @@ steps:
       type: validator_success
       validator: validate_moltworker_url
 
-  - id: cloudflare_access
-    title: Security Setup
-    description: "Choose how to protect your Moltworker admin interface. You can set up Cloudflare Access for production use, or skip this for personal/development use."
-    fields:
-      - security_mode
-      - cf_access_team_domain
-      - cf_access_aud
-    links:
-      - ref: cloudflare_access
-      - ref: cloudflare_zero_trust
-    completion:
-      type: fields_present
-      required_fields:
-        - security_mode
-
   - id: gateway_token
     title: Gateway Token
     description: Set up a secret token to protect your gateway. This token is required for all API requests to your Moltworker instance.
@@ -417,9 +369,6 @@ steps:
     summary:
       show_fields:
         - base_url
-        - security_mode
-        - cf_access_team_domain
-        - cf_access_aud
         - moltbot_gateway_token
         - r2_access_key_id
         - r2_secret_access_key

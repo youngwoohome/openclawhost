@@ -19,7 +19,7 @@ export interface MoltbotEnv {
 
   CLAWDBOT_BIND_MODE?: string;
   VERSION?: string; // Application version for healthz endpoint
-  DEV_MODE?: string; // Set to 'true' for local dev (skips CF Access auth + moltbot device pairing)
+  DEV_MODE?: string; // Set to 'true' for container dev mode (skips moltbot device pairing in container)
   DEBUG_ROUTES?: string; // Set to 'true' to enable /debug/* routes
   SANDBOX_SLEEP_AFTER?: string; // How long before sandbox sleeps: 'never' (default), or duration like '10m', '1h'
   TELEGRAM_BOT_TOKEN?: string;
@@ -28,9 +28,7 @@ export interface MoltbotEnv {
   DISCORD_DM_POLICY?: string;
   SLACK_BOT_TOKEN?: string;
   SLACK_APP_TOKEN?: string;
-  // Cloudflare Access configuration for admin routes
-  CF_ACCESS_TEAM_DOMAIN?: string; // e.g., 'myteam.cloudflareaccess.com'
-  CF_ACCESS_AUD?: string; // Application Audience (AUD) tag
+  // Note: CF Access removed - auth is via gateway token only
   // R2 credentials for bucket mounting (set via wrangler secret)
   R2_ACCESS_KEY_ID?: string;
   R2_SECRET_ACCESS_KEY?: string;
@@ -60,16 +58,3 @@ export type AppEnv = {
   };
 };
 
-/**
- * JWT payload from Cloudflare Access
- */
-export interface JWTPayload {
-  aud: string[];
-  email: string;
-  exp: number;
-  iat: number;
-  iss: string;
-  name?: string;
-  sub: string;
-  type: string;
-}

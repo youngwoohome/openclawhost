@@ -6,7 +6,6 @@ import type { StepDef } from '@/types/schema';
 import { useWizard } from './WizardProvider';
 import { DeployButton } from './DeployButton';
 import { DeployAllSecretsButton } from './DeployAllSecretsButton';
-import { SecurityWarning } from './SecurityWarning';
 import { OAuthInstructions } from './OAuthInstructions';
 import { DevicePairing } from './DevicePairing';
 import { SyncSecretButton } from './SyncSecretButton';
@@ -98,11 +97,6 @@ export function StepRenderer({ step }: StepRendererProps) {
             secretValue={state.fields['moltbot_gateway_token'].value as string}
           />
         </div>
-      )}
-
-      {/* Security mode warning - show after security_mode field is selected */}
-      {step.id === 'cloudflare_access' && state.fields['security_mode']?.value && (
-        <SecurityWarning mode={state.fields['security_mode'].value as string} />
       )}
 
       {/* OAuth instructions - show when OAuth token method is selected */}
